@@ -1,0 +1,52 @@
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+    body {
+        @apply bg-[#FFF5F8] text-slate-700 antialiased font-sans;
+        overflow-x: hidden;
+    }
+}
+
+/* Custom drag region for NativePHP frameless window */
+.app-drag-region {
+    -webkit-app-region: drag;
+    user-select: none;
+}
+
+.app-no-drag {
+    -webkit-app-region: no-drag;
+}
+
+/* Luxury scrollbar */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+::-webkit-scrollbar-track {
+    background: rgba(253, 242, 248, 0.6);
+}
+::-webkit-scrollbar-thumb {
+    background: rgba(244, 114, 182, 0.4);
+    border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(219, 39, 119, 0.6);
+}
+
+/* Soft Pink Warning Pulse for <= 3 days due */
+@keyframes pinkPulse {
+    0%, 100% {
+        box-shadow: 0 0 0 0 rgba(244, 114, 182, 0.5);
+    }
+    50% {
+        box-shadow: 0 0 0 8px rgba(244, 114, 182, 0);
+    }
+}
+
+.pink-pulse-badge {
+    animation: pinkPulse 2s infinite cubic-bezier(0.4, 0, 0.6, 1);
+}
