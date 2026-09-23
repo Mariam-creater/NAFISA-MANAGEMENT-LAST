@@ -37,8 +37,9 @@ class HandleInertiaRequests extends Middleware
     public function share(Request $request): array
     {
         $backupDir = storage_path('app/backups');
-        $lastBackupTime = null;
-        if (File::isDirectory($backupDir)) {
+        $lastBackupTime = \Illuminate\Support\Facades\Cache::get('last_backup_formatted');
+
+        if (!$lastBackupTime && File::isDirectory($backupDir)) {
             $files = File::files($backupDir);
             if (!empty($files)) {
                 usort($files, fn($a, $b) => $b->getMTime() - $a->getMTime());
@@ -50,8 +51,11 @@ class HandleInertiaRequests extends Middleware
             ...parent::share($request),
             'appName' => 'Nafisa Hostel Management System',
             'flash' => [
-                'success' => fn () => $request->session()->get('success'),
-                'error' => fn () => $request->session()->get('error'),
+                'success' => fn () => $request->session()->get('success') ?? ($request->session()->get('flash.type') === 'success' ? $request->session()->get('flash.message') : null),
+                'error' => fn () => $request->session()->get('error') ?? ($request->session()->get('flash.type') === 'error' ? $request->session()->get('flash.message') : null),
+                'type' => fn () => $request->session()->get('flash.type') ?? ($request->session()->get('success') ? 'success' : ($request->session()->get('error') ? 'error' : null)),
+                'message' => fn () => $request->session()->get('flash.message') ?? ($request->session()->get('success') ?? $request->session()->get('error')),
+                'newPayment' => fn () => $request->session()->get('new_payment'),
             ],
             'system' => [
                 'database' => 'SQLite 3 (Healthy)',

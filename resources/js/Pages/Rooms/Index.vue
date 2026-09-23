@@ -4,8 +4,8 @@
       <!-- Title & Summary Strip -->
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 class="text-2xl font-black text-slate-900 tracking-tight">Dynamic Room Inventory Grid</h2>
-          <p class="text-xs text-slate-500 mt-1">Floor-by-floor occupancy visualization for Block 1 &amp; Block 2</p>
+          <h2 class="text-2xl font-black text-slate-900 tracking-tight">Rooms &amp; Units</h2>
+          <p class="text-xs text-slate-500 mt-0.5">Floor layout for Block A &amp; Block B</p>
         </div>
 
         <!-- Legend Pills -->
@@ -107,7 +107,7 @@
                     {{ room.active_tenant.full_name }}
                   </div>
                   <div class="text-[10px] text-pink-600 font-mono">
-                    Due: {{ room.active_tenant.rent_due_date }}
+                    Due: {{ formatDate(room.active_tenant.rent_due_date) }}
                   </div>
                 </div>
                 <div v-else-if="room.status === 'vacant'" class="text-[11px] text-emerald-600 font-semibold">
@@ -168,6 +168,13 @@ function getRoomsForFloor(floor) {
 function formatUGX(val) {
   if (!val) return '0 UGX';
   return Number(val).toLocaleString() + ' UGX';
+}
+
+function formatDate(dateVal) {
+  if (!dateVal) return 'N/A';
+  const d = new Date(dateVal);
+  if (isNaN(d.getTime())) return String(dateVal);
+  return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
 function openRoomModal(room) {

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Services\BackupService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
@@ -48,24 +49,57 @@ class BackupController extends Controller
                 'integrity_status' => $integrityStatus,
                 'php_version' => PHP_VERSION,
                 'laravel_version' => app()->version(),
-                'backup_recipient' => env('BACKUP_GMAIL_RECIPIENT', config('mail.from.address')),
+                'backup_recipient' => env('BACKUP_MAIL_TO', env('BACKUP_GMAIL_RECIPIENT', config('mail.from.address'))),
                 'smtp_host' => config('mail.mailers.smtp.host'),
             ],
         ]);
     }
 
     /**
-     * Manually trigger Cloud Backup Now
+     * Manually trigger Cloud Backup to Gmail
      */
-    public function trigger(Request $request, BackupService $backupService)
+    public function triggerManualBackup(Request $request)
     {
         try {
-            $result = $backupService->createAndEmailBackup();
+            $exitCode = Artisan::call('backup:email');
 
-            return redirect()->back()->with('success', "Cloud ZIP backup {$result['filename']} generated and processed.");
+            if ($exitCode === 0) {
+                $recipient = env('BACKUP_MAIL_TO', env('BACKUP_GMAIL_RECIPIENT', config('mail.from.address', 'nafisa.hostel.system@gmail.com')));
+                $title = 'Backup Dispatched Successfully';
+                $description = "Database and assets packaged and sent to {$recipient}.";
+
+                return back()
+                    ->with('success', $description)
+                    ->with('flash', [
+                        'type' => 'success',
+                        'title' => $title,
+                        'description' => $description,
+                        'message' => $description,
+                    ]);
+            }
+
+            return back()->with('flash', [
+                'type' => 'error',
+                'title' => 'Backup Failed',
+                'description' => 'An error occurred while creating or sending the cloud backup.',
+                'message' => 'An error occurred while creating or sending the cloud backup.'
+            ])->with('error', 'An error occurred while creating or sending the cloud backup.');
         } catch (\Throwable $e) {
-            return redirect()->back()->with('error', "Backup failed: {$e->getMessage()}");
+            return back()->with('flash', [
+                'type' => 'error',
+                'title' => 'Backup Failed',
+                'description' => 'An error occurred while creating or sending the cloud backup: ' . $e->getMessage(),
+                'message' => 'An error occurred while creating or sending the cloud backup.'
+            ])->with('error', 'An error occurred while creating or sending the cloud backup.');
         }
+    }
+
+    /**
+     * Alias for backward compatibility
+     */
+    public function trigger(Request $request)
+    {
+        return $this->triggerManualBackup($request);
     }
 
     /**

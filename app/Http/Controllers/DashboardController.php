@@ -41,11 +41,12 @@ class DashboardController extends Controller
         $vacantCount = Room::where('status', 'vacant')->count();
         $maintenanceCount = Room::where('status', 'maintenance')->count();
         $activeTenantsCount = Tenant::where('status', 'active')->count();
+        $occupancyRate = $totalRooms > 0 ? round(($occupiedCount / $totalRooms) * 100, 1) : 0;
 
         // 2. Visualizations
         // Donut Chart: Occupancy & Block Revenue Share
-        $block1 = Block::where('code', 'B1')->first();
-        $block2 = Block::where('code', 'B2')->first();
+        $block1 = Block::where('code', 'A')->orWhere('code', 'B1')->orWhere('name', 'Block A')->orWhere('id', 1)->first();
+        $block2 = Block::where('code', 'B')->orWhere('code', 'B2')->orWhere('name', 'Block B')->orWhere('id', 2)->first();
 
         $block1Revenue = (int) Payment::whereHas('room', fn($q) => $q->where('block_id', $block1?->id))
             ->whereBetween('payment_date', [$startOfMonth, $endOfMonth])
@@ -108,6 +109,7 @@ class DashboardController extends Controller
                 'vacantCount' => $vacantCount,
                 'maintenanceCount' => $maintenanceCount,
                 'activeTenantsCount' => $activeTenantsCount,
+                'occupancyRate' => $occupancyRate,
             ],
             'donutChart' => $donutChart,
             'monthlyComparison' => $monthlyComparison,

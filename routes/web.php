@@ -36,6 +36,7 @@ Route::prefix('payments')->name('payments.')->group(function () {
     Route::post('/', [PaymentController::class, 'store'])->name('store');
     Route::get('/{payment}/receipt', [PaymentController::class, 'downloadReceipt'])->name('receipt');
     Route::post('/{payment}/resend', [PaymentController::class, 'resend'])->name('resend');
+    Route::post('/{payment}/resend/{channel}', [PaymentController::class, 'resendChannel'])->name('resend.channel');
 });
 
 // Financial Reports & One-Click Exports
@@ -45,10 +46,13 @@ Route::prefix('reports')->name('reports.')->group(function () {
     Route::get('/export/pdf', [ReportController::class, 'exportPdf'])->name('export.pdf');
 });
 
+// Manual Cloud Backup Trigger (Direct route & Settings route)
+Route::post('/backup/trigger', [BackupController::class, 'triggerManualBackup'])->name('backup.trigger');
+
 // Settings & Local Runtime Backup
 Route::prefix('settings')->name('settings.')->group(function () {
     Route::get('/', [BackupController::class, 'index'])->name('index');
-    Route::post('/backup/trigger', [BackupController::class, 'trigger'])->name('backup.trigger');
+    Route::post('/backup/trigger', [BackupController::class, 'triggerManualBackup'])->name('backup.trigger.alias');
 });
 
 Route::get('/backups/download/{filename}', [BackupController::class, 'download'])->name('backups.download');

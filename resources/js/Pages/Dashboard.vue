@@ -4,10 +4,11 @@
       <!-- Page Title & Quick Metric Subheading -->
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 class="text-2xl font-black text-slate-900 tracking-tight">Executive Financial &amp; Occupancy Dashboard</h2>
-          <p class="text-xs text-slate-500 mt-1">Real-time localized metrics for Block 1 &amp; Block 2 operations</p>
+          <h2 class="text-2xl font-black text-slate-900 tracking-tight">Dashboard</h2>
+          <p class="text-xs text-slate-500 mt-0.5">Overview for Block A &amp; Block B operations</p>
         </div>
-        <div class="flex items-center space-x-3">
+        <div class="flex items-center space-x-2.5">
+          <BackupButton :show-timestamp="true" timestamp-position="beside" />
           <Link
             href="/payments"
             class="px-3.5 py-2 bg-white hover:bg-pink-50 border border-pink-200 text-pink-700 text-xs font-semibold rounded-xl shadow-xs transition-colors flex items-center space-x-1.5"
@@ -99,18 +100,22 @@
               <Building class="w-4 h-4" />
             </span>
           </div>
-          <div class="grid grid-cols-3 gap-2 mt-3.5 pt-1 text-center border-t border-pink-50">
+          <div class="grid grid-cols-4 gap-1.5 mt-3.5 pt-1 text-center border-t border-pink-50">
             <div class="bg-pink-50/50 p-2 rounded-xl border border-pink-100/50">
-              <div class="text-base font-extrabold text-pink-700 font-mono">{{ kpis.occupiedCount }}</div>
-              <div class="text-[10px] font-medium text-slate-500 uppercase">Occupied</div>
+              <div class="text-base font-extrabold text-pink-700 font-mono">{{ kpis.activeTenantsCount }}</div>
+              <div class="text-[9px] font-semibold text-slate-500 uppercase">Tenants</div>
+            </div>
+            <div class="bg-purple-50/50 p-2 rounded-xl border border-purple-100/50">
+              <div class="text-base font-extrabold text-purple-700 font-mono">{{ kpis.occupiedCount }}</div>
+              <div class="text-[9px] font-semibold text-slate-500 uppercase">Occupied</div>
             </div>
             <div class="bg-emerald-50/50 p-2 rounded-xl border border-emerald-100/50">
               <div class="text-base font-extrabold text-emerald-700 font-mono">{{ kpis.vacantCount }}</div>
-              <div class="text-[10px] font-medium text-slate-500 uppercase">Vacant</div>
+              <div class="text-[9px] font-semibold text-slate-500 uppercase">Vacant</div>
             </div>
-            <div class="bg-slate-50 p-2 rounded-xl border border-slate-200/50">
-              <div class="text-base font-extrabold text-slate-700 font-mono">{{ kpis.totalRooms }}</div>
-              <div class="text-[10px] font-medium text-slate-500 uppercase">Total</div>
+            <div class="bg-rose-50/50 p-2 rounded-xl border border-rose-100/50">
+              <div class="text-base font-extrabold text-rose-700 font-mono">{{ kpis.occupancyRate || 0 }}%</div>
+              <div class="text-[9px] font-semibold text-slate-500 uppercase">Rate</div>
             </div>
           </div>
         </div>
@@ -155,11 +160,11 @@
           </div>
           <div class="mt-4 pt-3 border-t border-pink-100/60 grid grid-cols-2 gap-3 text-xs">
             <div class="bg-pink-50/40 p-2.5 rounded-xl border border-pink-100/50">
-              <span class="text-[10px] font-bold text-slate-400 block uppercase">Block 1 Revenue</span>
+              <span class="text-[10px] font-bold text-slate-400 block uppercase">Block A Revenue</span>
               <span class="text-xs font-bold text-pink-700 font-mono">{{ formatUGX(donutChart.blockShare.block1) }}</span>
             </div>
             <div class="bg-rose-50/40 p-2.5 rounded-xl border border-rose-100/50">
-              <span class="text-[10px] font-bold text-slate-400 block uppercase">Block 2 Revenue</span>
+              <span class="text-[10px] font-bold text-slate-400 block uppercase">Block B Revenue</span>
               <span class="text-xs font-bold text-rose-700 font-mono">{{ formatUGX(donutChart.blockShare.block2) }}</span>
             </div>
           </div>
@@ -288,6 +293,7 @@
 import { ref, onMounted } from 'vue';
 import { Link, router } from '@inertiajs/vue3';
 import AppLayout from '@/Layouts/AppLayout.vue';
+import BackupButton from '@/Components/BackupButton.vue';
 import { Chart, registerables } from 'chart.js';
 import {
   Banknote,
@@ -297,6 +303,7 @@ import {
   Receipt,
   UserPlus,
   Send,
+  Cloud,
 } from 'lucide-vue-next';
 
 Chart.register(...registerables);
@@ -311,6 +318,16 @@ const props = defineProps({
 const barChartCanvas = ref(null);
 const donutChartCanvas = ref(null);
 const sendingReminderId = ref(null);
+const backingUp = ref(false);
+
+function triggerBackupNow() {
+  backingUp.value = true;
+  router.post('/backup/trigger', {}, {
+    onFinish: () => {
+      backingUp.value = false;
+    }
+  });
+}
 
 function formatUGX(val) {
   if (val === null || val === undefined) return '0 UGX';

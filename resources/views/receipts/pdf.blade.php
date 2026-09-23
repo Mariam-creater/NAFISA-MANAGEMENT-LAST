@@ -2,83 +2,94 @@
 <html>
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-    <title>Receipt - {{ $payment->receipt_serial_no }}</title>
+    <title>Receipt {{ $payment->receipt_serial_no }}</title>
     <style>
         @page {
-            margin: 25px 30px;
+            margin: 28px 32px;
         }
         body {
             font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-            color: #334155;
+            color: #1E293B;
             margin: 0;
             padding: 0;
             font-size: 13px;
-            line-height: 1.5;
             background-color: #ffffff;
         }
-        .header-table {
+        .header-wrap {
             width: 100%;
             border-bottom: 2px solid #FBCFE8;
-            padding-bottom: 20px;
-            margin-bottom: 25px;
+            padding-bottom: 18px;
+            margin-bottom: 22px;
         }
-        .logo-title {
+        .title {
             font-size: 24px;
             font-weight: 800;
             color: #0F172A;
             letter-spacing: -0.5px;
             margin: 0;
         }
-        .logo-tagline {
+        .subtitle {
             font-size: 11px;
             color: #DB2777;
-            text-transform: uppercase;
             font-weight: 700;
-            letter-spacing: 1.5px;
-            margin-top: 4px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 3px;
         }
-        .receipt-badge {
+        .receipt-pill {
+            display: inline-block;
             background-color: #FDF2F8;
             border: 1px solid #F472B6;
             color: #DB2777;
-            padding: 6px 14px;
-            font-size: 13px;
+            padding: 4px 12px;
+            font-size: 12px;
             font-weight: 700;
             border-radius: 6px;
-            display: inline-block;
-            text-align: right;
         }
-        .meta-table {
+        .serial-no {
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 16px;
+            font-weight: 800;
+            color: #0F172A;
+            margin-top: 6px;
+        }
+        .info-grid {
             width: 100%;
-            margin-bottom: 30px;
+            margin-bottom: 24px;
+            border-collapse: separate;
+            border-spacing: 0;
         }
-        .meta-col {
-            width: 50%;
+        .info-card {
+            background-color: #FFF5F8;
+            border: 1px solid #FCE7F3;
+            border-radius: 8px;
+            padding: 12px 16px;
             vertical-align: top;
         }
-        .meta-label {
+        .label {
             font-size: 10px;
             text-transform: uppercase;
-            color: #94A3B8;
+            color: #64748B;
             font-weight: bold;
-            margin-bottom: 3px;
             letter-spacing: 0.5px;
+            margin-bottom: 3px;
         }
-        .meta-value {
-            font-size: 13px;
-            font-weight: 600;
+        .value {
+            font-size: 14px;
+            font-weight: 700;
             color: #0F172A;
         }
-        .meta-sub {
+        .sub-value {
             font-size: 12px;
-            color: #64748B;
+            color: #475569;
+            margin-top: 2px;
         }
-        .items-table {
+        .breakdown-table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 30px;
+            margin-bottom: 24px;
         }
-        .items-table th {
+        .breakdown-table th {
             background-color: #FDF2F8;
             color: #BE185D;
             font-size: 11px;
@@ -89,194 +100,241 @@
             text-align: left;
             border-bottom: 1px solid #FBCFE8;
         }
-        .items-table td {
+        .breakdown-table td {
             padding: 12px 14px;
             border-bottom: 1px solid #F1F5F9;
             color: #334155;
-            font-size: 12px;
-        }
-        .total-box-table {
-            width: 100%;
-            margin-bottom: 35px;
-        }
-        .total-row-label {
-            text-align: right;
-            padding: 6px 14px;
-            color: #64748B;
-            font-size: 12px;
-        }
-        .total-row-val {
-            text-align: right;
-            padding: 6px 14px;
-            font-weight: 600;
-            color: #0F172A;
             font-size: 13px;
+        }
+        .summary-wrap {
+            width: 100%;
+            margin-bottom: 25px;
+        }
+        .summary-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .summary-label {
+            text-align: right;
+            padding: 6px 12px;
+            color: #64748B;
+            font-size: 13px;
+        }
+        .summary-val {
+            text-align: right;
+            padding: 6px 12px;
+            font-weight: 700;
+            color: #0F172A;
+            font-size: 14px;
             font-family: 'Courier New', Courier, monospace;
         }
-        .grand-total-label {
+        .paid-label {
             text-align: right;
-            padding: 10px 14px;
+            padding: 8px 12px;
             color: #0F172A;
+            font-size: 14px;
+            font-weight: bold;
+            border-top: 1px solid #E2E8F0;
+        }
+        .paid-val {
+            text-align: right;
+            padding: 8px 12px;
+            font-size: 17px;
+            font-weight: 800;
+            color: #DB2777;
+            font-family: 'Courier New', Courier, monospace;
+            border-top: 1px solid #E2E8F0;
+        }
+        .balance-label {
+            text-align: right;
+            padding: 10px 12px;
             font-size: 14px;
             font-weight: bold;
             border-top: 2px solid #FBCFE8;
         }
-        .grand-total-val {
+        .balance-val {
             text-align: right;
-            padding: 10px 14px;
+            padding: 10px 12px;
             font-size: 16px;
-            font-weight: bold;
-            color: #DB2777;
+            font-weight: 800;
             font-family: 'Courier New', Courier, monospace;
             border-top: 2px solid #FBCFE8;
         }
-        .footer-note {
-            background-color: #FFF5F8;
-            border: 1px dashed #F472B6;
-            border-radius: 8px;
-            padding: 14px 18px;
-            font-size: 11px;
-            color: #64748B;
-            line-height: 1.6;
+        .balance-due {
+            color: #E11D48;
         }
-        .qr-placeholder {
-            width: 80px;
-            height: 80px;
-            border: 1px solid #FBCFE8;
-            background: #FFFFFF;
+        .balance-cleared {
+            color: #10B981;
+        }
+        .footer {
+            margin-top: 35px;
+            border-top: 1px dashed #FBCFE8;
+            padding-top: 14px;
             text-align: center;
-            line-height: 80px;
-            font-size: 9px;
-            color: #DB2777;
-            font-weight: bold;
-            border-radius: 6px;
-            display: inline-block;
+            font-size: 11px;
+            color: #94A3B8;
         }
     </style>
 </head>
 <body>
-    <table class="header-table" cellpadding="0" cellspacing="0">
+    <!-- Clean Luxury Header -->
+    <table class="header-wrap" cellpadding="0" cellspacing="0">
         <tr>
-            <td style="vertical-align: top;">
-                <div class="logo-title">NAFISA HOSTEL</div>
-                <div class="logo-tagline">Minimalist Luxury Living & Accommodation</div>
-                <div style="font-size: 11px; color: #64748B; margin-top: 6px;">
-                    Plot 18, University Crescent, Kampala, Uganda<br>
-                    Tel: +256 700 000 000 | Email: accounts@nafisahostel.com
-                </div>
+            <td style="vertical-align: middle;">
+                <div class="title">NAFISA HOSTEL</div>
+                <div class="subtitle">Official Rent Receipt</div>
             </td>
-            <td style="vertical-align: top; text-align: right;">
-                <div class="receipt-badge">OFFICIAL RECEIPT</div>
-                <div style="font-family: 'Courier New', Courier, monospace; font-size: 15px; font-weight: bold; color: #0F172A; margin-top: 8px;">
-                    {{ $payment->receipt_serial_no }}
-                </div>
-                <div style="font-size: 11px; color: #64748B; margin-top: 4px;">
-                    Issue Date: {{ \Carbon\Carbon::parse($payment->payment_date)->format('d F Y') }}
+            <td style="vertical-align: middle; text-align: right;">
+                <div class="receipt-pill">RECEIPT</div>
+                <div class="serial-no">{{ $payment->receipt_serial_no }}</div>
+                <div style="font-size: 11px; color: #64748B; margin-top: 3px;">
+                    Date Paid: <strong>{{ \Carbon\Carbon::parse($payment->payment_date)->format('d F Y') }}</strong>
                 </div>
             </td>
         </tr>
     </table>
 
-    <table class="meta-table" cellpadding="0" cellspacing="0">
+    <!-- Clean Tenant & Room Particulars (2 Columns) -->
+    <table class="info-grid" cellpadding="0" cellspacing="0">
         <tr>
-            <td class="meta-col">
-                <div class="meta-label">Billed To (Tenant)</div>
-                <div class="meta-value">{{ $payment->tenant->full_name }}</div>
-                <div class="meta-sub">Tel: {{ $payment->tenant->whatsapp_number }}</div>
-                <div class="meta-sub">Email: {{ $payment->tenant->email }}</div>
-                <div class="meta-sub">Occupation: {{ ucfirst($payment->tenant->occupation) }}</div>
+            <td style="width: 48%;" class="info-card">
+                <div class="label">Resident (Tenant)</div>
+                <div class="value">{{ $payment->tenant->full_name }}</div>
+                <div class="sub-value">Phone: {{ $payment->tenant->whatsapp_number }}</div>
+                @if($payment->tenant->email)
+                    <div class="sub-value">Email: {{ $payment->tenant->email }}</div>
+                @endif
             </td>
-            <td class="meta-col" style="padding-left: 30px;">
-                <div class="meta-label">Accommodation Allocation</div>
-                <div class="meta-value">{{ $payment->room ? $payment->room->block->name . ' — Room ' . $payment->room->room_number : 'Assigned Unit' }}</div>
-                <div class="meta-sub">Floor: {{ $payment->room ? 'Floor ' . $payment->room->floor_number : 'N/A' }}</div>
-                <div class="meta-sub">Payment Mode: <strong style="color: #DB2777; text-transform: uppercase;">{{ str_replace('_', ' ', $payment->payment_method) }}</strong></div>
-                <div class="meta-sub">Status: <span style="color: #10B981; font-weight: bold;">PAID &amp; CONFIRMED</span></div>
+            <td style="width: 4%;"></td>
+            <td style="width: 48%;" class="info-card">
+                <div class="label">Unit &amp; Payment Details</div>
+                <div class="value">
+                    {{ $payment->room ? $payment->room->block->name . ' — Room ' . $payment->room->room_number : 'Assigned Unit' }}
+                </div>
+                <div class="sub-value">
+                    Floor: {{ $payment->room ? 'Floor ' . $payment->room->floor_number : 'N/A' }}
+                    &bull; Method: <strong style="text-transform: uppercase; color: #DB2777;">{{ str_replace('_', ' ', $payment->payment_method) }}</strong>
+                </div>
+                @if($payment->notes)
+                    <div class="sub-value" style="color: #DB2777;">Ref: {{ $payment->notes }}</div>
+                @endif
             </td>
         </tr>
     </table>
 
-    <table class="items-table">
+    <!-- Itemized Breakdown -->
+    <table class="breakdown-table">
         <thead>
             <tr>
-                <th style="width: 55%;">Description</th>
-                <th style="width: 15%; text-align: center;">Cycle</th>
+                <th style="width: 70%;">Description</th>
                 <th style="width: 30%; text-align: right;">Amount (UGX)</th>
             </tr>
         </thead>
         <tbody>
             <tr>
                 <td>
-                    <strong style="color: #0F172A;">Hostel Room Accommodation Charge</strong><br>
-                    <span style="color: #64748B; font-size: 11px;">
-                        {{ $payment->room ? $payment->room->block->description : 'Monthly lease accommodation' }}
-                    </span>
-                    @if($payment->notes)
-                        <br><span style="color: #DB2777; font-size: 11px;">Note: {{ $payment->notes }}</span>
-                    @endif
+                    <strong style="color: #0F172A;">Monthly Accommodation Charge</strong>
+                    <div style="color: #64748B; font-size: 11px; margin-top: 2px;">
+                        {{ $payment->room ? $payment->room->block->name : 'Unit' }} Rent Settlement
+                    </div>
                 </td>
-                <td style="text-align: center; color: #64748B;">1 Month</td>
-                <td style="text-align: right; font-weight: 600; font-family: 'Courier New', Courier, monospace;">
+                <td style="text-align: right; font-weight: bold; font-family: 'Courier New', Courier, monospace;">
                     {{ number_format($payment->base_rent_charged) }} UGX
                 </td>
             </tr>
             @if($payment->tax_amount > 0)
             <tr>
                 <td>
-                    <strong style="color: #0F172A;">Applicable Government Tax / Levy</strong>
+                    <strong style="color: #0F172A;">Tax / Surcharge</strong>
                 </td>
-                <td style="text-align: center; color: #64748B;">—</td>
-                <td style="text-align: right; font-weight: 600; font-family: 'Courier New', Courier, monospace;">
+                <td style="text-align: right; font-weight: bold; font-family: 'Courier New', Courier, monospace;">
                     {{ number_format($payment->tax_amount) }} UGX
+                </td>
+            </tr>
+            @endif
+
+            @php
+                $previousArrears = max(0, $payment->total_due - ($payment->base_rent_charged + $payment->tax_amount));
+            @endphp
+            @if($previousArrears > 0)
+            <tr>
+                <td>
+                    <strong style="color: #0F172A;">Previous Outstanding Balance</strong>
+                    <div style="color: #64748B; font-size: 11px; margin-top: 2px;">
+                        Carried over from prior billing cycle
+                    </div>
+                </td>
+                <td style="text-align: right; font-weight: bold; font-family: 'Courier New', Courier, monospace; color: #E11D48;">
+                    {{ number_format($previousArrears) }} UGX
                 </td>
             </tr>
             @endif
         </tbody>
     </table>
 
-    <table class="total-box-table" cellpadding="0" cellspacing="0">
+    <!-- Financial Summary Box: Total, Paid, Balance Remaining -->
+    @php
+        $balance = max(0, $payment->total_due - $payment->amount_received);
+    @endphp
+    <table class="summary-wrap" cellpadding="0" cellspacing="0">
         <tr>
-            <td style="width: 50%; vertical-align: top;">
-                <table cellpadding="0" cellspacing="0">
-                    <tr>
-                        <td style="vertical-align: middle;">
-                            <div class="qr-placeholder">
-                                <span style="display:block; line-height: 1.2; padding-top: 25px;">VERIFIED<br>OFFICIAL</span>
-                            </div>
-                        </td>
-                        <td style="padding-left: 14px; vertical-align: middle;">
-                            <div style="font-size: 11px; font-weight: bold; color: #0F172A;">Tamper-Proof Verification</div>
-                            <div style="font-size: 10px; color: #64748B; margin-top: 2px;">
-                                Generated by Nafisa Desktop System.<br>
-                                Verification Hash: {{ substr(md5($payment->receipt_serial_no . $payment->amount_received), 0, 16) }}
-                            </div>
-                        </td>
-                    </tr>
-                </table>
+            <td style="width: 45%; vertical-align: top;">
+                <div style="background-color: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 8px; padding: 12px 16px;">
+                    <div style="font-size: 11px; font-weight: bold; color: #475569; text-transform: uppercase;">Payment Status</div>
+                    <div style="font-size: 14px; font-weight: 800; margin-top: 3px; color: {{ $balance > 0 ? '#E11D48' : '#10B981' }};">
+                        {{ $balance > 0 ? 'PARTIAL PAYMENT RECORDED' : 'FULL PAYMENT SETTLED' }}
+                    </div>
+                    <div style="font-size: 11px; color: #64748B; margin-top: 4px;">
+                        Date Paid: {{ \Carbon\Carbon::parse($payment->payment_date)->format('d F Y') }}
+                    </div>
+                </div>
             </td>
-            <td style="width: 50%; vertical-align: top;">
-                <table style="width: 100%;" cellpadding="0" cellspacing="0">
+            <td style="width: 55%; vertical-align: top;">
+                <table class="summary-table">
                     <tr>
-                        <td class="total-row-label">Base Rate:</td>
-                        <td class="total-row-val">{{ number_format($payment->base_rent_charged) }} UGX</td>
+                        <td class="summary-label">Monthly Rent:</td>
+                        <td class="summary-val">{{ number_format($payment->base_rent_charged) }} UGX</td>
                     </tr>
                     @if($payment->tax_amount > 0)
                     <tr>
-                        <td class="total-row-label">Tax Total:</td>
-                        <td class="total-row-val">{{ number_format($payment->tax_amount) }} UGX</td>
+                        <td class="summary-label">Tax / Additional Fee:</td>
+                        <td class="summary-val" style="color: #BE185D;">{{ number_format($payment->tax_amount) }} UGX</td>
+                    </tr>
+                    @endif
+                    @if($previousArrears > 0)
+                    <tr>
+                        <td class="summary-label" style="color: #B45309;">Previous Balance:</td>
+                        <td class="summary-val" style="color: #B45309;">{{ number_format($previousArrears) }} UGX</td>
                     </tr>
                     @endif
                     <tr>
-                        <td class="grand-total-label">Total Amount Paid:</td>
-                        <td class="grand-total-val">{{ number_format($payment->amount_received) }} UGX</td>
+                        <td class="summary-label" style="font-weight: bold; color: #0F172A; border-top: 1px solid #E2E8F0; padding-top: 8px;">Total Amount Due:</td>
+                        <td class="summary-val" style="font-weight: 800; border-top: 1px solid #E2E8F0; padding-top: 8px;">{{ number_format($payment->total_due) }} UGX</td>
+                    </tr>
+                    <tr>
+                        <td class="paid-label">Amount Paid:</td>
+                        <td class="paid-val">{{ number_format($payment->amount_received) }} UGX</td>
+                    </tr>
+                    <tr>
+                        <td class="balance-label {{ $balance > 0 ? 'balance-due' : 'balance-cleared' }}" style="{{ $balance > 0 ? 'background-color: #FFF1F2; border-radius: 4px 0 0 4px;' : '' }}">
+                            Balance Remaining:
+                        </td>
+                        <td class="balance-val {{ $balance > 0 ? 'balance-due' : 'balance-cleared' }}" style="{{ $balance > 0 ? 'background-color: #FFF1F2; border-radius: 0 4px 4px 0;' : '' }}">
+                            @if($balance > 0)
+                                {{ number_format($balance) }} UGX
+                            @else
+                                0 UGX (CLEARED)
+                            @endif
+                        </td>
                     </tr>
                 </table>
             </td>
         </tr>
     </table>
 
-    <div class="footer-note">
-        <strong>Terms &amp; Tenancy Advisory:</strong> All rent payments must be settled in advance of each monthly cycle. This electronic receipt serves as official legal acknowledgment of payment received by Nafisa Hostel Management. Thank you for your continued residence!
+    <!-- Clean, Simple Footer -->
+    <div class="footer">
+        Nafisa Hostel &bull; Thank you for your payment!
     </div>
 </body>
 </html>

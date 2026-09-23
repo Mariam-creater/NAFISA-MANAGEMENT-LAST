@@ -30,10 +30,12 @@ class Tenant extends Model
         'check_in_date',
         'rent_due_date',
         'status',
+        'current_balance',
     ];
 
     protected $casts = [
         'age' => 'integer',
+        'current_balance' => 'integer',
         'check_in_date' => 'date',
         'rent_due_date' => 'date',
     ];
@@ -44,6 +46,7 @@ class Tenant extends Model
         'remaining_due_days',
         'due_status',
         'retention_days_left',
+        'outstanding_balance',
     ];
 
     public function room(): BelongsTo
@@ -53,7 +56,7 @@ class Tenant extends Model
 
     public function payments(): HasMany
     {
-        return $this->hasMany(Payment::class)->orderByDesc('payment_date');
+        return $this->hasMany(Payment::class)->orderByDesc('payment_date')->orderByDesc('id');
     }
 
     public function notificationLogs(): HasMany
@@ -116,6 +119,24 @@ class Tenant extends Model
                 $expiry = $deletion->copy()->addDays(365);
                 $remaining = (int) Carbon::now()->diffInDays($expiry, false);
                 return max(0, $remaining);
+            }
+        );
+    }
+
+    protected function outstandingBalance(): Attribute
+    {
+        return Attribute::make(
+            get: function () {
+                if ($this->current_balance > 0) {
+                    return (int) $this->current_balance;
+                }
+                $latest = $this->relationLoaded('payments')
+                    ? $this->payments->first()
+                    : $this->payments()->first();
+                if ($latest && $latest->balance_remaining > 0) {
+                    return (int) $latest->balance_remaining;
+                }
+                return 0;
             }
         );
     }

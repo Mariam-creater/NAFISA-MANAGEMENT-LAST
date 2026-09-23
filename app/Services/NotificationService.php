@@ -42,15 +42,33 @@ class NotificationService
         // 2. WhatsApp Channel
         if (in_array('whatsapp', $channels) && $tenant->whatsapp_number) {
             try {
-                // Construct personalized WhatsApp payload
-                $roomDesc = $payment->room ? "{$payment->room->block->name} Rm {$payment->room->room_number}" : 'Hostel Unit';
-                $waText = "Hello {$tenant->full_name}, thank you for your rent payment of " . number_format($payment->amount_received) . " UGX for {$roomDesc}. Receipt: {$payment->receipt_serial_no}.";
+                // Construct personalized WhatsApp payload with itemized breakdown
+                $roomDesc = $payment->room ? "{$payment->room->block->name} - Room {$payment->room->room_number}" : 'Hostel Unit';
+                $receiptUrl = url("/payments/{$payment->id}/receipt");
+                $taxStr = $payment->tax_amount > 0 ? number_format($payment->tax_amount) . " UGX" : "0 UGX";
+                $balanceStr = number_format($payment->balance_remaining) . " UGX";
+                
+                $waText = "Hello {$tenant->full_name},\n\n"
+                    . "Thank you for your rent payment at Nafisa Hostel for {$roomDesc}.\n\n"
+                    . "*Rent Payment Breakdown:*\n"
+                    . "• Monthly Rent: " . number_format($payment->base_rent_charged) . " UGX\n"
+                    . ($payment->tax_amount > 0 ? "• Tax / Surcharge: {$taxStr}\n" : "")
+                    . "• Total Due: " . number_format($payment->total_due) . " UGX\n"
+                    . "• Amount Paid: " . number_format($payment->amount_received) . " UGX\n"
+                    . "• Balance Remaining: {$balanceStr}\n\n"
+                    . "View Official PDF Receipt:\n{$receiptUrl}\n\n"
+                    . "Nafisa Hostel Administration";
                 
                 // In production, trigger WhatsApp Cloud API / Twilio WhatsApp endpoint
                 // Log dispatch to notification_logs
                 $this->logDispatch($tenant->id, 'payment_receipt', 'whatsapp', 'sent', $tenant->whatsapp_number, [
                     'message' => $waText,
                     'serial' => $payment->receipt_serial_no,
+                    'receipt_url' => $receiptUrl,
+                    'rent' => $payment->base_rent_charged,
+                    'tax' => $payment->tax_amount,
+                    'paid' => $payment->amount_received,
+                    'balance' => $payment->balance_remaining,
                 ]);
                 $results['whatsapp'] = true;
             } catch (\Throwable $e) {

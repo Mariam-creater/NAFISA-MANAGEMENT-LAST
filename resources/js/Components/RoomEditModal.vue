@@ -66,14 +66,15 @@
         <div class="bg-pink-50/40 p-3.5 rounded-2xl border border-pink-100 space-y-2">
           <div class="flex justify-between items-center">
             <span class="text-slate-500">Block Default Base Rate:</span>
-            <span class="font-mono font-bold text-slate-900">{{ formatUGX(room.base_price) }}</span>
+            <span class="font-mono font-bold text-slate-900">{{ formatUGX(defaultBaseRate) }}</span>
           </div>
           <div>
             <label class="block font-semibold text-slate-700 mb-1">Custom Price Override (UGX)</label>
             <input
               v-model.number="form.custom_price"
               type="number"
-              step="5000"
+              step="any"
+              min="0"
               placeholder="Leave empty to use base rate"
               class="w-full px-3 py-2 rounded-xl border border-pink-200 bg-white font-mono focus:border-pink-400 outline-none"
             />
@@ -87,7 +88,7 @@
             <img :src="room.active_tenant.avatar_url" class="w-8 h-8 rounded-full border border-pink-200 object-cover" />
             <div>
               <div class="font-bold text-slate-800 text-[11px]">{{ room.active_tenant.full_name }}</div>
-              <div class="text-[10px] text-slate-400">Due: {{ room.active_tenant.rent_due_date }}</div>
+              <div class="text-[10px] text-slate-400">Due: {{ formatDate(room.active_tenant.rent_due_date) }}</div>
             </div>
           </div>
           <span class="text-[10px] font-bold text-pink-700 bg-pink-50 px-2 py-0.5 rounded-md">Active</span>
@@ -127,7 +128,7 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue';
+import { ref, watch, computed } from 'vue';
 import { router } from '@inertiajs/vue3';
 
 const props = defineProps({
@@ -142,6 +143,15 @@ const form = ref({
   status: 'vacant',
   custom_price: null,
   notes: '',
+});
+
+const defaultBaseRate = computed(() => {
+  if (props.room?.base_price && props.room.base_price > 0) return props.room.base_price;
+  if (props.room?.block?.default_monthly_price) return props.room.block.default_monthly_price;
+  const blockName = (props.room?.block?.name || '').toLowerCase();
+  const blockCode = (props.room?.block?.code || '').toUpperCase();
+  if (blockName.includes('b') || blockName.includes('2') || blockCode === 'B' || blockCode === 'B2') return 1000000;
+  return 420000;
 });
 
 watch(
@@ -161,6 +171,13 @@ watch(
 function formatUGX(val) {
   if (!val) return '0 UGX';
   return Number(val).toLocaleString() + ' UGX';
+}
+
+function formatDate(dateVal) {
+  if (!dateVal) return 'N/A';
+  const d = new Date(dateVal);
+  if (isNaN(d.getTime())) return String(dateVal);
+  return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
 function submitRoomUpdate() {

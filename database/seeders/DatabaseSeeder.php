@@ -19,16 +19,16 @@ class DatabaseSeeder extends Seeder
     {
         // 1. Create Blocks
         $block1 = Block::create([
-            'name' => 'Block 1',
-            'code' => 'B1',
-            'description' => 'Single Room with attached modern toilet & private balcony. Serene garden view.',
+            'name' => 'Block A',
+            'code' => 'A',
+            'description' => 'Single Room with attached modern toilet & private balcony.',
             'total_floors' => 6,
             'default_monthly_price' => 420000, // 420,000 UGX/month
         ]);
 
         $block2 = Block::create([
-            'name' => 'Block 2',
-            'code' => 'B2',
+            'name' => 'Block B',
+            'code' => 'B',
             'description' => 'Spacious 1-Bedroom suite with separate living area, kitchenette & balcony.',
             'total_floors' => 6,
             'default_monthly_price' => 1000000, // 1,000,000 UGX/month

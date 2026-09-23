@@ -77,25 +77,33 @@ class BackupService
         $filesize = File::size($zipFilePath);
 
         // 4. Dispatch Email to Gmail
-        $recipient = $recipientEmail ?? config('mail.backup_recipient', env('BACKUP_GMAIL_RECIPIENT', config('mail.from.address')));
+        $recipient = $recipientEmail ?? env('BACKUP_MAIL_TO', config('mail.backup_recipient', env('BACKUP_GMAIL_RECIPIENT', config('mail.from.address'))));
         $emailSent = false;
 
-        if ($recipient) {
-            try {
-                Mail::to($recipient)->send(new DatabaseBackupMail(
-                    $zipFilePath,
-                    $zipFilename,
-                    $filesize,
-                    date('d M Y, H:i')
-                ));
-                $emailSent = true;
-            } catch (\Throwable $e) {
-                Log::error("Failed to email backup to {$recipient}: {$e->getMessage()}");
+        try {
+            if ($recipient) {
+                try {
+                    Mail::to($recipient)->send(new DatabaseBackupMail(
+                        $zipFilePath,
+                        $zipFilename,
+                        $filesize,
+                        date('d M Y, H:i')
+                    ));
+                    $emailSent = true;
+                } catch (\Throwable $e) {
+                    Log::error("Failed to email backup to {$recipient}: {$e->getMessage()}");
+                }
+            }
+        } finally {
+            // Delete temporary ZIP archive after dispatching to keep local storage clean
+            if (File::exists($zipFilePath)) {
+                File::delete($zipFilePath);
             }
         }
 
-        // Retain only the 5 most recent backups locally to save disk space
-        $this->pruneOldBackups($backupDir, 5);
+        // 5. Update Cache for instantaneous UI reactivity across all sessions
+        \Illuminate\Support\Facades\Cache::forever('last_backup_formatted', date('M d, Y H:i'));
+        \Illuminate\Support\Facades\Cache::forever('last_backup_at', now()->toIso8601String());
 
         return [
             'success' => true,

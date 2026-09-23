@@ -1,5 +1,8 @@
 <template>
   <div class="flex flex-col h-screen w-screen overflow-hidden bg-[#FFF5F8] text-slate-700 font-sans selection:bg-pink-500 selection:text-white">
+    <!-- Sonner Toast Container -->
+    <Toaster position="top-right" richColors />
+
     <!-- 1. Custom Frameless Desktop Titlebar (Native Desktop UX) -->
     <header class="app-drag-region h-10 w-full bg-white/70 backdrop-blur-md border-b border-pink-100 flex items-center justify-between px-4 select-none z-50 shrink-0">
       <!-- Window Controls (Mac/Desktop style) -->
@@ -127,7 +130,10 @@
           </div>
 
           <!-- Right Actions Strip -->
-          <div class="flex items-center space-x-3.5">
+          <div class="flex items-center space-x-3">
+            <!-- Manual Backup Button in Top Navigation Header -->
+            <BackupButton :show-timestamp="false" size="sm" />
+
             <!-- Collect Rent Global Shortcut Modal Button -->
             <button
               @click="openCollectRentModal"
@@ -198,6 +204,9 @@
 <script setup>
 import { ref, onMounted, onUnmounted, computed, watch } from 'vue';
 import { Link, usePage, router } from '@inertiajs/vue3';
+import { Toaster, toast } from 'vue-sonner';
+import 'vue-sonner/style.css';
+import BackupButton from '@/Components/BackupButton.vue';
 import {
   LayoutDashboard,
   Users,
@@ -214,18 +223,31 @@ const page = usePage();
 const flashMessage = ref(null);
 const globalSearch = ref('');
 
-// Watch for flash messages
+// Watch for global Inertia flash notifications and trigger Sonner toasts
 watch(
-  () => page.props.flash?.success,
-  (newVal) => {
-    if (newVal) {
-      flashMessage.value = newVal;
-      setTimeout(() => {
-        flashMessage.value = null;
-      }, 5000);
+  () => page.props.flash,
+  (newFlash) => {
+    if (!newFlash) return;
+
+    if (newFlash.type === 'error' || newFlash.error) {
+      const title = newFlash.title || 'Error';
+      const desc = newFlash.description || newFlash.message || newFlash.error;
+      toast.error(title, {
+        description: desc,
+        duration: 5000,
+      });
+    } else if (newFlash.type === 'success' || newFlash.success || newFlash.title || newFlash.description) {
+      const title = newFlash.title || 'Success';
+      const desc = newFlash.description || newFlash.message || newFlash.success;
+      if (desc) {
+        toast.success(title, {
+          description: desc,
+          duration: 5000,
+        });
+      }
     }
   },
-  { immediate: true }
+  { deep: true, immediate: true }
 );
 
 // Navigation items

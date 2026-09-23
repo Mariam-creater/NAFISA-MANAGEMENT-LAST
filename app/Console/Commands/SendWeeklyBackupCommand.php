@@ -28,7 +28,7 @@ class SendWeeklyBackupCommand extends Command
     {
         $this->info('Starting automated SQLite & media cloud backup...');
 
-        $recipient = $this->option('recipient');
+        $recipient = $this->option('recipient') ?: env('BACKUP_MAIL_TO', env('BACKUP_GMAIL_RECIPIENT', config('mail.from.address')));
 
         try {
             $result = $backupService->createAndEmailBackup($recipient);
@@ -39,7 +39,7 @@ class SendWeeklyBackupCommand extends Command
             if ($result['email_sent']) {
                 $this->info("Dispatched to Gmail recipient: {$result['recipient']}");
             } else {
-                $this->warn("Backup archive saved locally, but email could not be sent (check SMTP settings).");
+                $this->warn("Backup archive processed, but email could not be sent (check SMTP settings).");
             }
 
             return Command::SUCCESS;

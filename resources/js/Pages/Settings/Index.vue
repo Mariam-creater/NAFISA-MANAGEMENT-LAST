@@ -7,14 +7,7 @@
           <h2 class="text-2xl font-black text-slate-900 tracking-tight">System Controls &amp; Gmail Cloud Vault</h2>
           <p class="text-xs text-slate-500 mt-1">Local-first SQLite engine management &amp; automated weekly cloud backups</p>
         </div>
-        <button
-          @click="triggerBackupNow"
-          :disabled="backingUp"
-          class="px-4 py-2.5 bg-gradient-to-r from-pink-500 via-rose-500 to-pink-600 hover:from-pink-600 hover:to-rose-600 text-white text-xs font-bold rounded-xl shadow-glam transition-all active:scale-95 flex items-center space-x-2 disabled:opacity-50"
-        >
-          <Cloud class="w-4 h-4" />
-          <span>{{ backingUp ? 'Compressing & Backing Up...' : 'Trigger Cloud Backup Now' }}</span>
-        </button>
+        <BackupButton :show-timestamp="true" timestamp-position="beside" />
       </div>
 
       <!-- System Health Diagnostics Grid -->
@@ -116,8 +109,8 @@
 import { ref } from 'vue';
 import { router } from '@inertiajs/vue3';
 import AppLayout from '@/Layouts/AppLayout.vue';
+import BackupButton from '@/Components/BackupButton.vue';
 import {
-  Cloud,
   Database,
   Mail,
   Cpu,
@@ -133,7 +126,7 @@ const backingUp = ref(false);
 
 function triggerBackupNow() {
   backingUp.value = true;
-  router.post('/settings/backup/trigger', {}, {
+  router.post('/backup/trigger', {}, {
     onFinish: () => {
       backingUp.value = false;
     }

@@ -62,7 +62,8 @@
                     <th>Date</th>
                     <th>Room Unit</th>
                     <th>Payment Method</th>
-                    <th style="text-align: right;">Amount (UGX)</th>
+                    <th style="text-align: right;">Amount Paid</th>
+                    <th style="text-align: right;">Remaining Balance</th>
                 </tr>
             </thead>
             <tbody>
@@ -73,6 +74,13 @@
                     <td>{{ $p->room ? $p->room->block->name . ' - Rm ' . $p->room->room_number : 'N/A' }}</td>
                     <td style="text-transform: uppercase;">{{ str_replace('_', ' ', $p->payment_method) }}</td>
                     <td style="text-align: right; font-weight: bold; color: #DB2777; font-family: monospace;">{{ number_format($p->amount_received) }} UGX</td>
+                    <td style="text-align: right; font-family: monospace;">
+                        @if(($p->total_due - $p->amount_received) > 0)
+                            <span style="color: #E11D48; font-weight: bold;">{{ number_format($p->total_due - $p->amount_received) }} UGX</span>
+                        @else
+                            <span style="color: #10B981; font-weight: 600;">Cleared</span>
+                        @endif
+                    </td>
                 </tr>
                 @endforeach
             </tbody>

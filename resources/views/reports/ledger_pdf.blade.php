@@ -61,11 +61,11 @@
             <tr>
                 <th>Serial</th>
                 <th>Date</th>
-                <th>Tenant Name</th>
-                <th>Room Unit</th>
+                <th>Resident</th>
+                <th>Unit</th>
                 <th>Method</th>
-                <th style="text-align: right;">Tax</th>
-                <th style="text-align: right;">Amount (UGX)</th>
+                <th style="text-align: right;">Paid (UGX)</th>
+                <th style="text-align: right;">Balance</th>
             </tr>
         </thead>
         <tbody>
@@ -74,10 +74,16 @@
                 <td style="font-family: monospace; font-weight: bold; color: #0F172A;">{{ $p->receipt_serial_no }}</td>
                 <td>{{ \Carbon\Carbon::parse($p->payment_date)->format('d M Y') }}</td>
                 <td>{{ $p->tenant->full_name }}</td>
-                <td>{{ $p->room ? $p->room->block->code . ' - ' . $p->room->room_number : 'N/A' }}</td>
+                <td>{{ $p->room ? $p->room->block->name . ' - ' . $p->room->room_number : 'N/A' }}</td>
                 <td style="text-transform: uppercase;">{{ str_replace('_', ' ', $p->payment_method) }}</td>
-                <td style="text-align: right; color: #64748B; font-family: monospace;">{{ number_format($p->tax_amount) }}</td>
                 <td style="text-align: right; font-weight: bold; color: #DB2777; font-family: monospace;">{{ number_format($p->amount_received) }} UGX</td>
+                <td style="text-align: right; font-family: monospace;">
+                    @if(($p->total_due - $p->amount_received) > 0)
+                        <span style="color: #E11D48; font-weight: bold;">{{ number_format($p->total_due - $p->amount_received) }} UGX</span>
+                    @else
+                        <span style="color: #10B981; font-weight: 600;">Cleared</span>
+                    @endif
+                </td>
             </tr>
             @empty
             <tr>

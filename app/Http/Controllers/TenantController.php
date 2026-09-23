@@ -9,6 +9,7 @@ use App\Services\NotificationService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
 use Carbon\Carbon;
@@ -50,7 +51,7 @@ class TenantController extends Controller
             $activeQuery->where('occupation', $occupation);
         }
 
-        $activeTenants = $activeQuery->orderBy('rent_due_date', 'asc')->get();
+        $activeTenants = $activeQuery->orderByDesc('id')->get();
 
         // Apply in-memory due filter if specified
         if ($dueFilter) {
@@ -93,47 +94,68 @@ class TenantController extends Controller
      */
     public function store(Request $request)
     {
+        // Default rent_due_date to check_in_date + 30 days if not set
+        if (empty($request->input('rent_due_date')) && !empty($request->input('check_in_date'))) {
+            $request->merge([
+                'rent_due_date' => Carbon::parse($request->input('check_in_date'))->addDays(30)->toDateString()
+            ]);
+        }
+
         $validated = $request->validate([
             'full_name' => 'required|string|max:255',
-            'age' => 'required|integer|min:16|max:100',
+            'age' => 'required|numeric|min:16',
             'email' => 'required|email|max:255',
             'whatsapp_number' => 'required|string|max:50',
-            'occupation' => 'required|in:student,employed,self_employed,unemployed',
+            'occupation' => 'required|string',
+            'room_id' => 'required|exists:rooms,id',
+            'check_in_date' => 'required|date',
+            'rent_due_date' => 'required|date',
             'emergency_name' => 'required|string|max:255',
             'emergency_phone' => 'required|string|max:50',
             'emergency_relationship' => 'required|string|max:100',
-            'room_id' => 'required|exists:rooms,id',
-            'check_in_date' => 'required|date',
-            'rent_due_date' => 'nullable|date',
-            'avatar' => 'nullable|image|max:10240',
-            'id_document' => 'nullable|file|mimes:jpeg,png,jpg,pdf|max:10240',
+            'avatar' => 'nullable|image|max:5120',
+            'id_document' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:5120',
         ]);
 
-        // Default rent_due_date to check_in_date + 30 days if not set
-        if (empty($validated['rent_due_date'])) {
-            $validated['rent_due_date'] = Carbon::parse($validated['check_in_date'])->addDays(30)->toDateString();
-        }
+        DB::transaction(function () use ($request, $validated) {
+            $avatarPath = $request->hasFile('avatar') 
+                ? $request->file('avatar')->store('tenants/avatars', 'public') 
+                : null;
 
-        // Handle Avatar Upload
-        if ($request->hasFile('avatar')) {
-            $path = $request->file('avatar')->store('avatars', 'public');
-            $validated['avatar_path'] = $path;
-        }
+            $idDocPath = $request->hasFile('id_document') 
+                ? $request->file('id_document')->store('tenants/documents', 'public') 
+                : null;
 
-        // Handle ID Document Upload
-        if ($request->hasFile('id_document')) {
-            $path = $request->file('id_document')->store('id_documents', 'public');
-            $validated['id_document_path'] = $path;
-        }
+            Tenant::create([
+                'room_id' => $validated['room_id'],
+                'full_name' => $validated['full_name'],
+                'age' => $validated['age'],
+                'email' => $validated['email'],
+                'whatsapp_number' => $validated['whatsapp_number'],
+                'occupation' => $validated['occupation'],
+                'emergency_name' => $validated['emergency_name'],
+                'emergency_phone' => $validated['emergency_phone'],
+                'emergency_relationship' => $validated['emergency_relationship'],
+                'check_in_date' => $validated['check_in_date'],
+                'rent_due_date' => $validated['rent_due_date'],
+                'status' => 'active',
+                'current_balance' => 0,
+                'avatar_path' => $avatarPath,
+                'id_document_path' => $idDocPath,
+            ]);
 
-        $validated['status'] = 'active';
+            Room::where('id', $validated['room_id'])->update([
+                'status' => 'occupied'
+            ]);
+        });
 
-        $tenant = Tenant::create($validated);
-
-        // Mark assigned room as occupied
-        Room::where('id', $validated['room_id'])->update(['status' => 'occupied']);
-
-        return redirect()->back()->with('success', "Tenant {$tenant->full_name} registered successfully!");
+        return redirect()->back()
+            ->with('success', 'New resident record created and room assigned.')
+            ->with('flash', [
+                'type' => 'success',
+                'title' => 'Resident Registered Successfully',
+                'message' => 'New resident record created and room assigned.'
+            ]);
     }
 
     /**
@@ -143,10 +165,10 @@ class TenantController extends Controller
     {
         $validated = $request->validate([
             'full_name' => 'required|string|max:255',
-            'age' => 'required|integer|min:16|max:100',
+            'age' => 'required|numeric|min:16',
             'email' => 'required|email|max:255',
             'whatsapp_number' => 'required|string|max:50',
-            'occupation' => 'required|in:student,employed,self_employed,unemployed',
+            'occupation' => 'required|string',
             'emergency_name' => 'required|string|max:255',
             'emergency_phone' => 'required|string|max:50',
             'emergency_relationship' => 'required|string|max:100',
@@ -154,37 +176,46 @@ class TenantController extends Controller
             'check_in_date' => 'required|date',
             'rent_due_date' => 'required|date',
             'status' => 'required|in:active,inactive',
-            'avatar' => 'nullable|image|max:10240',
-            'id_document' => 'nullable|file|mimes:jpeg,png,jpg,pdf|max:10240',
+            'avatar' => 'nullable|image|max:5120',
+            'id_document' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:5120',
         ]);
 
         // Handle room changes
         $oldRoomId = $tenant->room_id;
         $newRoomId = $validated['room_id'] ?? null;
 
-        if ($oldRoomId != $newRoomId) {
-            if ($oldRoomId) {
-                // Free previous room
-                Room::where('id', $oldRoomId)->update(['status' => 'vacant']);
-            }
-            if ($newRoomId) {
-                Room::where('id', $newRoomId)->update(['status' => 'occupied']);
-            }
-        }
-
         if ($request->hasFile('avatar')) {
-            $path = $request->file('avatar')->store('avatars', 'public');
+            $path = $request->file('avatar')->store('tenants/avatars', 'public');
             $validated['avatar_path'] = $path;
         }
 
         if ($request->hasFile('id_document')) {
-            $path = $request->file('id_document')->store('id_documents', 'public');
+            $path = $request->file('id_document')->store('tenants/documents', 'public');
             $validated['id_document_path'] = $path;
         }
 
-        $tenant->update($validated);
+        DB::transaction(function () use ($tenant, $validated, $oldRoomId, $newRoomId) {
+            if ($oldRoomId != $newRoomId) {
+                if ($oldRoomId) {
+                    Room::where('id', $oldRoomId)->update(['status' => 'vacant']);
+                }
+                if ($newRoomId) {
+                    Room::where('id', $newRoomId)->update(['status' => 'occupied']);
+                }
+            }
+            $tenant->update($validated);
+        });
 
-        return redirect()->back()->with('success', "Tenant {$tenant->full_name} profile updated.");
+        $desc = 'Resident information has been saved successfully.';
+        return redirect()->back()->with([
+            'success' => $desc,
+            'flash' => [
+                'type' => 'success',
+                'title' => 'Resident Details Updated',
+                'description' => $desc,
+                'message' => $desc,
+            ],
+        ]);
     }
 
     /**
@@ -192,21 +223,34 @@ class TenantController extends Controller
      */
     public function destroy(Tenant $tenant)
     {
+        $tenant->loadMissing('room');
         $name = $tenant->full_name;
+        $roomNumber = $tenant->room ? "Room {$tenant->room->room_number}" : 'Assigned Unit';
 
-        // Release room to vacant
-        if ($tenant->room_id) {
-            Room::where('id', $tenant->room_id)->update(['status' => 'vacant']);
-        }
+        DB::transaction(function () use ($tenant) {
+            // Release room to vacant
+            if ($tenant->room_id) {
+                Room::where('id', $tenant->room_id)->update(['status' => 'vacant']);
+            }
 
-        $tenant->update([
-            'status' => 'inactive',
-            'room_id' => null,
+            $tenant->update([
+                'status' => 'inactive',
+                'room_id' => null,
+            ]);
+
+            $tenant->delete(); // Soft delete into 1-year archive
+        });
+
+        $desc = "{$name} has been archived. {$roomNumber} is now vacant.";
+        return redirect()->back()->with([
+            'success' => $desc,
+            'flash' => [
+                'type' => 'success',
+                'title' => 'Resident Checked Out',
+                'description' => $desc,
+                'message' => $desc,
+            ],
         ]);
-
-        $tenant->delete(); // Soft delete
-
-        return redirect()->back()->with('success', "Tenant {$name} checked out. Moved to 1-Year Retention Archive.");
     }
 
     /**
@@ -215,10 +259,22 @@ class TenantController extends Controller
     public function restore($id)
     {
         $tenant = Tenant::onlyTrashed()->findOrFail($id);
-        $tenant->restore();
-        $tenant->update(['status' => 'active']);
+        
+        DB::transaction(function () use ($tenant) {
+            $tenant->restore();
+            $tenant->update(['status' => 'active']);
+        });
 
-        return redirect()->back()->with('success', "Tenant {$tenant->full_name} restored successfully.");
+        $desc = "{$tenant->full_name} has been restored to active residents.";
+        return redirect()->back()->with([
+            'success' => $desc,
+            'flash' => [
+                'type' => 'success',
+                'title' => 'Resident Restored',
+                'description' => $desc,
+                'message' => $desc,
+            ],
+        ]);
     }
 
     /**

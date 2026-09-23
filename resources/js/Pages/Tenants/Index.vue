@@ -4,8 +4,8 @@
       <!-- Header Strip with Tabs & Action -->
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 class="text-2xl font-black text-slate-900 tracking-tight">Tenant Records &amp; Lifecycle Archive</h2>
-          <p class="text-xs text-slate-500 mt-1">Manage active residents, room allocations, and 1-year retention archives</p>
+          <h2 class="text-2xl font-black text-slate-900 tracking-tight">Tenants</h2>
+          <p class="text-xs text-slate-500 mt-0.5">Active residents and 1-year archive</p>
         </div>
         <div class="flex items-center space-x-3">
           <button
@@ -43,7 +43,7 @@
           ]"
         >
           <Archive class="w-4 h-4" />
-          <span>1-Year Retention Archive ({{ archivedTenants.length }})</span>
+          <span>1-Year Archive ({{ archivedTenants.length }})</span>
         </button>
       </div>
 
@@ -110,9 +110,9 @@
                 <tr>
                   <th class="px-6 py-3.5">Resident</th>
                   <th class="px-4 py-3.5">Assigned Unit</th>
-                  <th class="px-4 py-3.5">Occupation</th>
                   <th class="px-4 py-3.5">Rent Due Date</th>
-                  <th class="px-4 py-3.5">Status &amp; Countdown</th>
+                  <th class="px-4 py-3.5">Pending Balance</th>
+                  <th class="px-4 py-3.5">Countdown</th>
                   <th class="px-6 py-3.5 text-right">Actions</th>
                 </tr>
               </thead>
@@ -145,14 +145,27 @@
                     </span>
                   </td>
 
-                  <!-- Occupation -->
-                  <td class="px-4 py-3.5 whitespace-nowrap capitalize font-medium text-slate-700">
-                    {{ t.occupation }}
-                  </td>
-
                   <!-- Rent Due Date -->
                   <td class="px-4 py-3.5 whitespace-nowrap font-medium text-slate-700">
                     {{ formatDate(t.rent_due_date) }}
+                  </td>
+
+                  <!-- Pending Balance -->
+                  <td class="px-4 py-3.5 whitespace-nowrap">
+                    <span
+                      v-if="t.outstanding_balance > 0"
+                      class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-50 text-amber-800 border border-amber-200 font-mono inline-flex items-center space-x-1"
+                    >
+                      <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                      <span>{{ formatUGX(t.outstanding_balance) }} left</span>
+                    </span>
+                    <span
+                      v-else
+                      class="text-xs text-slate-400 font-mono flex items-center space-x-1"
+                    >
+                      <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                      <span>Cleared</span>
+                    </span>
                   </td>
 
                   <!-- Countdown & Due Status -->
@@ -363,6 +376,11 @@ function formatDate(dateStr) {
   if (!dateStr) return 'N/A';
   const d = new Date(dateStr);
   return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+}
+
+function formatUGX(amount) {
+  if (!amount && amount !== 0) return '0 UGX';
+  return Number(amount).toLocaleString() + ' UGX';
 }
 
 function openRegisterModal() {

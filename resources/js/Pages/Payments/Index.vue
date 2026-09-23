@@ -4,15 +4,15 @@
       <!-- Title & Action -->
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 class="text-2xl font-black text-slate-900 tracking-tight">Payments Ledger &amp; PDF Receipt Engine</h2>
-          <p class="text-xs text-slate-500 mt-1">Real-time ledger entries, vector-sharp PDF generation, and dispatch tracking</p>
+          <h2 class="text-2xl font-black text-slate-900 tracking-tight">Payments &amp; Receipts</h2>
+          <p class="text-xs text-slate-500 mt-0.5">Transaction records and receipts</p>
         </div>
         <button
           @click="showBillingModal = true"
           class="px-4 py-2.5 bg-gradient-to-r from-pink-500 via-rose-500 to-pink-600 hover:from-pink-600 hover:to-rose-600 text-white text-xs font-bold rounded-xl shadow-glam transition-all active:scale-95 flex items-center space-x-1.5"
         >
           <Receipt class="w-4 h-4" />
-          <span>Intake Payment &amp; Issue Receipt</span>
+          <span>Record Payment</span>
         </button>
       </div>
 
@@ -78,7 +78,8 @@
                 <th class="px-4 py-3.5">Resident</th>
                 <th class="px-4 py-3.5">Unit Allocation</th>
                 <th class="px-4 py-3.5">Payment Method</th>
-                <th class="px-4 py-3.5 text-right">Amount (UGX)</th>
+                <th class="px-4 py-3.5 text-right">Paid (UGX)</th>
+                <th class="px-4 py-3.5 text-right">Remaining Balance</th>
                 <th class="px-6 py-3.5 text-right">Actions</th>
               </tr>
             </thead>
@@ -108,7 +109,7 @@
                 <!-- Room -->
                 <td class="px-4 py-3.5 whitespace-nowrap">
                   <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-semibold bg-white border border-pink-200 text-pink-700">
-                    {{ p.room ? p.room.block.code + ' - Rm ' + p.room.room_number : 'Assigned' }}
+                    {{ p.room ? p.room.block.name + ' - Rm ' + p.room.room_number : 'Assigned' }}
                   </span>
                 </td>
 
@@ -131,6 +132,16 @@
                 <!-- Amount -->
                 <td class="px-4 py-3.5 whitespace-nowrap text-right font-mono font-bold text-slate-900">
                   {{ formatUGX(p.amount_received) }}
+                </td>
+
+                <!-- Balance -->
+                <td class="px-4 py-3.5 whitespace-nowrap text-right font-mono">
+                  <span v-if="(p.total_due - p.amount_received) > 0" class="text-rose-600 font-bold">
+                    {{ formatUGX(p.total_due - p.amount_received) }}
+                  </span>
+                  <span v-else class="text-emerald-600 font-semibold text-[11px]">
+                    Nil (Paid)
+                  </span>
                 </td>
 
                 <!-- Actions -->
@@ -157,7 +168,7 @@
               </tr>
 
               <tr v-if="payments.data.length === 0">
-                <td colspan="7" class="px-6 py-12 text-center text-slate-400">
+                <td colspan="8" class="px-6 py-12 text-center text-slate-400">
                   No payment transactions found.
                 </td>
               </tr>

@@ -4,8 +4,8 @@
       <!-- Title & Export Buttons -->
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 class="text-2xl font-black text-slate-900 tracking-tight">Executive Financial Reporting &amp; Ledger Exports</h2>
-          <p class="text-xs text-slate-500 mt-1">Generate certified statements, analyze cash flow, and export financial dossiers</p>
+          <h2 class="text-2xl font-black text-slate-900 tracking-tight">Financial Reports</h2>
+          <p class="text-xs text-slate-500 mt-0.5">Revenue summaries and exportable ledgers</p>
         </div>
         <div class="flex items-center space-x-3">
           <a
@@ -13,7 +13,7 @@
             class="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl shadow-xs transition-colors flex items-center space-x-1.5"
           >
             <Download class="w-4 h-4" />
-            <span>Export Excel (.csv)</span>
+            <span>Export Excel</span>
           </a>
           <a
             :href="pdfExportUrl"
@@ -21,7 +21,7 @@
             class="px-4 py-2.5 bg-gradient-to-r from-pink-500 via-rose-500 to-pink-600 hover:from-pink-600 hover:to-rose-600 text-white text-xs font-bold rounded-xl shadow-glam transition-all active:scale-95 flex items-center space-x-1.5"
           >
             <FileSpreadsheet class="w-4 h-4" />
-            <span>Formal Ledger (.pdf)</span>
+            <span>Download PDF</span>
           </a>
         </div>
       </div>
