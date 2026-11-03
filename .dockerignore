@@ -1,0 +1,12 @@
+node_modules
+vendor
+.git
+.github
+.env
+.env.backup
+.env.production
+tests
+.phpunit.cache
+.phpunit.result.cache
+*.sqlite
+*.sqbpro

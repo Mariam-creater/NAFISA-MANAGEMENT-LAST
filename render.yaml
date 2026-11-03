@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: nafisa-management-system
+    runtime: docker
+    plan: free
+    region: frankfurt
+    branch: main
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: false
+      - key: DB_CONNECTION
+        value: sqlite
+      - key: LOG_CHANNEL
+        value: stderr
