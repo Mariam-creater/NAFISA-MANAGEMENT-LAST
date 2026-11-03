@@ -7,18 +7,18 @@
           <h2 class="text-2xl font-black text-slate-900 tracking-tight">Dashboard</h2>
           <p class="text-xs text-slate-500 mt-0.5">Overview for Block A &amp; Block B operations</p>
         </div>
-        <div class="flex items-center space-x-2.5">
-          <BackupButton :show-timestamp="true" timestamp-position="beside" />
+        <div class="flex flex-wrap items-center gap-2">
+          <BackupButton :show-timestamp="false" class="shrink-0" />
           <Link
             href="/payments"
-            class="px-3.5 py-2 bg-white hover:bg-pink-50 border border-pink-200 text-pink-700 text-xs font-semibold rounded-xl shadow-xs transition-colors flex items-center space-x-1.5"
+            class="px-3 py-1.5 sm:px-3.5 sm:py-2 bg-white hover:bg-pink-50 border border-pink-200 text-pink-700 text-xs font-semibold rounded-xl shadow-xs transition-colors flex items-center space-x-1.5"
           >
             <Receipt class="w-3.5 h-3.5" />
-            <span>Open Cashier</span>
+            <span>Cashier</span>
           </Link>
           <Link
             href="/tenants"
-            class="px-3.5 py-2 bg-pink-600 hover:bg-pink-700 text-white text-xs font-semibold rounded-xl shadow-glam transition-all flex items-center space-x-1.5"
+            class="px-3 py-1.5 sm:px-3.5 sm:py-2 bg-pink-600 hover:bg-pink-700 text-white text-xs font-semibold rounded-xl shadow-glam transition-all flex items-center space-x-1.5"
           >
             <UserPlus class="w-3.5 h-3.5" />
             <span>Register Tenant</span>

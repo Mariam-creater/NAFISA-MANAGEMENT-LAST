@@ -19,7 +19,7 @@
       </div>
 
       <!-- Navigation Tabs (Active vs 1-Year Retention Archive) -->
-      <div class="flex items-center space-x-2 border-b border-pink-100 pb-1">
+      <div class="flex items-center space-x-2 border-b border-pink-100 pb-1 overflow-x-auto">
         <button
           @click="activeTab = 'active'"
           :class="[

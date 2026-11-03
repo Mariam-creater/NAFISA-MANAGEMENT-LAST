@@ -50,3 +50,13 @@
 .pink-pulse-badge {
     animation: pinkPulse 2s infinite cubic-bezier(0.4, 0, 0.6, 1);
 }
+
+/* Safe area padding for mobile iPhones/Androids */
+.safe-area-bottom {
+    padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
+}
+
+.safe-area-top {
+    padding-top: max(0.5rem, env(safe-area-inset-top));
+}
+

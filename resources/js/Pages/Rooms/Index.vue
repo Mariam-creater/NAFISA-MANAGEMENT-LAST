@@ -9,7 +9,7 @@
         </div>
 
         <!-- Legend Pills -->
-        <div class="flex items-center space-x-3 text-xs bg-white px-4 py-2 rounded-2xl border border-pink-100 shadow-xs">
+        <div class="flex flex-wrap items-center gap-2.5 text-xs bg-white px-3.5 py-2 rounded-2xl border border-pink-100 shadow-xs">
           <div class="flex items-center space-x-1.5">
             <span class="w-3 h-3 rounded-md bg-white border-2 border-dashed border-pink-300"></span>
             <span class="text-slate-600 font-medium">Vacant ({{ stats.vacant }})</span>
@@ -26,7 +26,7 @@
       </div>
 
       <!-- Block Tabs (Block 1 vs Block 2) -->
-      <div class="flex items-center space-x-3">
+      <div class="flex items-center space-x-2.5 overflow-x-auto pb-1">
         <button
           v-for="block in blocks"
           :key="block.id"
