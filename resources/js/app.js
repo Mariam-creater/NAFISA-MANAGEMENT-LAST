@@ -22,3 +22,13 @@ createInertiaApp({
         showSpinner: true,
     },
 });
+
+// Register PWA Service Worker
+if ('serviceWorker' in navigator && (window.location.protocol === 'https:' || window.location.hostname === 'localhost')) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js').catch((err) => {
+            console.warn('Service worker registration failed:', err);
+        });
+    });
+}
+

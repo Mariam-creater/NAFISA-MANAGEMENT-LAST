@@ -162,6 +162,16 @@
 
         <!-- Drawer Footer Info -->
         <div class="p-4 border-t border-pink-100 bg-gradient-to-b from-transparent to-pink-50/50">
+          <!-- Install App as Mobile Application Button -->
+          <button
+            @click="triggerInstall"
+            type="button"
+            class="w-full flex items-center justify-center space-x-2 py-2.5 px-3 bg-gradient-to-r from-pink-500 via-rose-500 to-pink-600 hover:from-pink-600 hover:to-rose-700 text-white font-bold text-xs rounded-xl shadow-glam transition-all active:scale-95 mb-3"
+          >
+            <Download class="w-4 h-4" />
+            <span>{{ isInstalled ? 'Application Installed ✓' : 'Install Mobile App' }}</span>
+          </button>
+
           <div class="bg-white/90 border border-pink-100 rounded-xl p-3 shadow-xs mb-3">
             <div class="flex items-center justify-between text-xs mb-1">
               <span class="text-slate-500 font-medium text-[11px]">System Status</span>
@@ -387,12 +397,15 @@ import {
   Cloud,
   Menu,
   X,
+  Download,
 } from 'lucide-vue-next';
 
 const page = usePage();
 const flashMessage = ref(null);
 const globalSearch = ref('');
 const mobileMenuOpen = ref(false);
+const installPrompt = ref(null);
+const isInstalled = ref(false);
 
 // Auto-close mobile drawer when route changes
 router.on('navigate', () => {
@@ -467,7 +480,46 @@ let timer = null;
 onMounted(() => {
   updateTime();
   timer = setInterval(updateTime, 1000);
+
+  // Capture PWA install prompt (Android / Chrome / Edge)
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    installPrompt.value = e;
+  });
+
+  window.addEventListener('appinstalled', () => {
+    isInstalled.value = true;
+    installPrompt.value = null;
+    toast.success('App-ka waa la shubtay!', {
+      description: 'Nafisa Hostel Management System waxaad hadda si toos ah uga furankartaa shaashadda guriga.',
+    });
+  });
+
+  // Check if already running in standalone PWA mode
+  if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true) {
+    isInstalled.value = true;
+  }
 });
+
+async function triggerInstall() {
+  if (installPrompt.value) {
+    installPrompt.value.prompt();
+    const { outcome } = await installPrompt.value.userChoice;
+    if (outcome === 'accepted') {
+      installPrompt.value = null;
+      isInstalled.value = true;
+    }
+  } else if (isInstalled.value) {
+    toast.info('App-ku waa ku shubanyahay talefankaaga', {
+      description: 'Waxaad si toos ah uga heli kartaa Home Screen-kaaga.',
+    });
+  } else {
+    toast.info('Sida loogu shubto Talefanka:', {
+      description: 'iPhone (Safari): Taabo badhanka Share (⎋) hoose -> dooro "Add to Home Screen" (+).\nAndroid (Chrome): Taabo sadexda dhibcood (...) -> dooro "Install app".',
+      duration: 8000,
+    });
+  }
+}
 
 onUnmounted(() => {
   if (timer) clearInterval(timer);
